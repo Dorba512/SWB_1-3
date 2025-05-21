@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Форма оплаты покупок</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+    body {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      min-height: 100vh;
+      justify-content: center;
+      align-items: center;
+      color: #333;
+    }
+    .container {
+      background: #fff;
+      padding: 2.5rem 3rem;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      width: 100%;
+      max-width: 450px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-weight: 700;
+      color: #4a148c;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      margin-bottom: 0.25rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #4a148c;
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="number"],
+    input[type="password"],
+    select {
+      padding: 0.5rem 0.75rem;
+      margin-bottom: 1rem;
+      border: 1.8px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="tel"]:focus,
+    input[type="number"]:focus,
+    input[type="password"]:focus,
+    select:focus {
+      outline: none;
+      border-color: #764ba2;
+      box-shadow: 0 0 8px rgba(118,75,162, 0.3);
+    }
+    .small-inputs {
+      display: flex;
+      gap: 1rem;
+    }
+    .small-inputs > div {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .error {
+      color: #d32f2f;
+      font-size: 0.8rem;
+      margin-top: -0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    button {
+      background-color: #764ba2;
+      color: white;
+      border: none;
+      padding: 0.75rem;
+      font-size: 1.1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #5c3a80;
+    }
+    .success-message {
+      text-align: center;
+      color: #2e7d32;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Оплата покупки</h1>
+    <form id="paymentForm" novalidate>
+      <label for="fullname">ФИО</label>
+      <input type="text" id="fullname" name="fullname" placeholder="Иван Иванов" required />
+      <div class="error" id="fullnameError"></div>
+
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" placeholder="example@mail.ru" required />
+      <div class="error" id="emailError"></div>
+
+      <label for="phone">Телефон</label>
+      <input type="tel" id="phone" name="phone" placeholder="+7 (999) 999-99-99" pattern="^\+7\s?\(\d{3}\)\s?\d{3}-\d{2}-\d{2}$" required />
+      <div class="error" id="phoneError"></div>
+
+      <label for="address">Адрес доставки</label>
+      <input type="text" id="address" name="address" placeholder="ул. Ленина, дом 10, кв. 5" required />
+      <div class="error" id="addressError"></div>
+
+      <label for="city">Город</label>
+      <input type="text" id="city" name="city" placeholder="Москва" required />
+      <div class="error" id="cityError"></div>
+
+      <label for="state">Область/регион</label>
+      <input type="text" id="state" name="state" placeholder="Московская обл." required />
+      <div class="error" id="stateError"></div>
+
+      <label for="zipcode">Почтовый индекс</label>
+      <input type="text" id="zipcode" name="zipcode" pattern="\d{6}" placeholder="123456" required />
+      <div class="error" id="zipcodeError"></div>
+
+      <label for="cardnumber">Номер карты</label>
+      <input type="text" id="cardnumber" name="cardnumber" maxlength="19" placeholder="1234 5678 9012 3456" required />
+      <div class="error" id="cardnumberError"></div>
+
+      <div class="small-inputs">
+        <div>
+          <label for="expiry">Срок действия (ММ/ГГ)</label>
+          <input type="text" id="expiry" name="expiry" placeholder="MM/YY" pattern="^(0[1-9]|1[0-2])\/\d{2}$" required />
+          <div class="error" id="expiryError"></div>
+        </div>
+        <div>
+          <label for="cvv">CVV</label>
+          <input type="password" id="cvv" name="cvv" maxlength="3" placeholder="123" pattern="\d{3}" required />
+          <div class="error" id="cvvError"></div>
+        </div>
+      </div>
+
+      <button type="submit">Оплатить</button>
+      <div class="success-message" id="successMessage"></div>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('paymentForm');
+    const successMessage = document.getElementById('successMessage');
+
+    const showError = (input, message) => {
+      const errorElement = document.getElementById(input.id + 'Error');
+      errorElement.textContent = message || '';
+    };
+
+    const validateInput = (input) => {
+      if (!input.checkValidity()) {
+        if (input.validity.valueMissing) {
+          showError(input, 'Это поле обязательно для заполнения');
+        } else if (input.validity.typeMismatch) {
+          showError(input, 'Некорректный формат');
+        } else if (input.validity.patternMismatch) {
+          showError(input, 'Некорректный формат');
+        } else {
+          showError(input, 'Ошибка в поле');
+        }
+        return false;
+      } else {
+        showError(input, '');
+        return true;
+      }
+    };
+
+    // Custom validations
+    const validateCardNumber = (number) => {
+      const sanitized = number.replace(/\s+/g, '');
+      if (!/^\d{16}$/.test(sanitized)) return false;
+
+      // Luhn algorithm for card validation
+      let sum = 0;
+      for (let i = 0; i < 16; i++) {
+        let digit = parseInt(sanitized.charAt(15 - i), 10);
+        if (i % 2 === 1) {
+          digit *= 2;
+          if (digit > 9) digit -= 9;
+        }
+        sum += digit;
+      }
+      return sum % 10 === 0;
+    };
+
+    form.cardnumber.addEventListener('input', e => {
+      // Format input as 1234 5678 9012 3456 while typing
+      let value = e.target.value.replace(/\D/g, '').substring(0,16);
+      let formatted = value.match(/.{1,4}/g);
+      if (formatted) {
+        e.target.value = formatted.join(' ');
+      } else {
+        e.target.value = value;
+      }
+    });
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      successMessage.textContent = '';
+
+      let isFormValid = true;
+
+      // Validate all inputs
+      for (const element of form.elements) {
+        if (element.tagName.toLowerCase() === 'input') {
+          if (!validateInput(element)) {
+            isFormValid = false;
+          }
+        }
+      }
+
+      // Additional for card number
+      if (!validateCardNumber(form.cardnumber.value)) {
+        showError(form.cardnumber, 'Неверный номер карты');
+        isFormValid = false;
+      } else {
+        showError(form.cardnumber, '');
+      }
+
+      // Expiration date validation - check if date is not expired
+      const expiryInput = form.expiry.value;
+      if (/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiryInput)) {
+        const [month, year] = expiryInput.split('/');
+        const expiryDate = new Date(2000 + parseInt(year), parseInt(month) - 1, 1);
+        const now = new Date();
+        now.setDate(1);
+        now.setHours(0,0,0,0);
+        if (expiryDate < now) {
+          showError(form.expiry, 'Срок действия карты истек');
+          isFormValid = false;
+        } else {
+          showError(form.expiry, '');
+        }
+      }
+
+      if (isFormValid) {
+        successMessage.textContent = 'Оплата успешно совершена! Спасибо за покупку.';
+        form.reset();
+      }
+    });
+  </script>
+</body>
+</html>
+
